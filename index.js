@@ -22,7 +22,7 @@ doodleRightImg.src = "./Assets/doodler-right.png";
 
 let velX=0;
 let velY=0;
-let initialVelY=-8;
+let initialVelY=-9;
 let gravity=0.4;
 
 let doodler = {
@@ -74,25 +74,33 @@ function update() {
     context.clearRect(0, 0, boardWidth, boardHeight);
 
     //doodler render
-    velY += gravity*deltaTime;
-    doodler.y+=velY*deltaTime;
-    if(doodler.y > boardHeight){
-        gameOver=true;
+    let currentGravity = gravity;
+    if (velY < 0 && doodler.y < boardHeight * 3 / 5) {
+        currentGravity *= 1.5;
+    }
+    velY += currentGravity * deltaTime;
+    doodler.y += velY * deltaTime;
+    if (doodler.y > boardHeight) {
+        gameOver = true;
     }
     doodlerRender(deltaTime);
 
+
     //platform render
-    for(let i = 0; i<platformArray.length;i++){
-        let platform=platformArray[i];
-        if(velY<0 && doodler.y < boardHeight*3/5){
-            platform.y -= initialVelY*deltaTime;
+    for (let i = 0; i < platformArray.length; i++) {
+        let platform = platformArray[i];
+        // Move platform down
+        platform.y += 0.5;
+        if (velY < 0 && doodler.y < boardHeight * 3 / 5) {
+            platform.y -= initialVelY * deltaTime;
         }
         //jump
-        if(detectCollision(doodler,platform) && velY>=0){
-            velY=initialVelY;
+        if (detectCollision(doodler, platform) && velY >= 0) {
+            velY = initialVelY;
         }
         context.drawImage(platform.img, platform.x, platform.y, platform.width, platform.height);
     }
+
 
     //new platform
     while(platformArray.length>0 && platformArray[0].y >= boardHeight){
@@ -178,18 +186,24 @@ function placePlatforms(){
     }
 }
 
-function newPlatform(){
-    let randomX = Math.floor(Math.random()*boardWidth*3/4);
-    let gap=Math.floor(Math.random()*10);
-    platform={
+function newPlatform() {
+    let randomX = Math.floor(Math.random() * boardWidth * 3 / 4);
+    // Check if randomX is too close to doodler.x
+    while (Math.abs(randomX - doodler.x) < doodleWidth) {
+        // Generate new randomX
+        randomX = Math.floor(Math.random() * boardWidth * 3 / 4);
+    }
+    let gap = Math.floor(Math.random() * 10);
+    platform = {
         img: platformImg,
         x: randomX,
         y: -platformHeight + gap,
-        width:platformWidth,
-        height:platformHeight
+        width: platformWidth,
+        height: platformHeight
     }
     platformArray.push(platform);
 }
+
 
 function detectCollision(a,b){
     return  a.x < b.x + b.width &&
