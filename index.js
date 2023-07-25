@@ -38,6 +38,7 @@ let platformWidth=60;
 let platformHeight=18;
 let platformImg=new Image();
 platformImg.src="./Assets/platform.png";
+let platformCount=7;
 
 window.onload = function () {
     board = document.getElementById("board");
@@ -63,16 +64,27 @@ function update() {
     // Draw game state
     context.clearRect(0, 0, boardWidth, boardHeight);
 
+    //doodler render
     velY += gravity*deltaTime;
     doodler.y+=velY*deltaTime;
-    doodlerMove(deltaTime);
+    doodlerRender(deltaTime);
 
+    //platform render
     for(let i = 0; i<platformArray.length;i++){
         let platform=platformArray[i];
-        if(detectCollision(doodler,platform)){
+        if(velY<0 && doodler.y < boardHeight*3/4){
+            platform.y -= initialVelY*deltaTime;
+        }
+        //jump
+        if(detectCollision(doodler,platform) && velY>=0){
             velY=initialVelY;
         }
         context.drawImage(platform.img, platform.x, platform.y, platform.width, platform.height);
+    }
+
+    while(platformArray.length>0 && platformArray[0].y >= boardHeight){
+        platformArray.shift();
+        newPlatform();
     }
 
     showfps(currentTime);
@@ -90,7 +102,7 @@ function controls(e){
     }
 }
 
-function doodlerMove(deltaTime){
+function doodlerRender(deltaTime){
     doodler.x +=velX*deltaTime;
     if(doodler.x > boardWidth){
         doodler.x=0-doodler.width/2;
@@ -114,14 +126,30 @@ function placePlatforms(){
 
     platformArray.push(platform);
 
+    for(let i=0; i<platformCount; i++){
+        let randomX = Math.floor(Math.random()*boardWidth*3/4);
+        let gap=Math.floor(Math.random()*10);
+        platform={
+            img: platformImg,
+            x: randomX,
+            y: boardHeight - (70+gap)*i - 150 ,
+            width:platformWidth,
+            height:platformHeight
+        }
+        platformArray.push(platform);
+    }
+}
+
+function newPlatform(){
+    let randomX = Math.floor(Math.random()*boardWidth*3/4);
+    let gap=Math.floor(Math.random()*10);
     platform={
         img: platformImg,
-        x: boardWidth/2,
-        y:boardHeight-150,
+        x: randomX,
+        y: -platformHeight + gap,
         width:platformWidth,
         height:platformHeight
     }
-
     platformArray.push(platform);
 }
 
