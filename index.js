@@ -14,7 +14,7 @@ let context;
 let doodleWidth = 46;
 let doodleHeight = 46;
 let doodleX = boardWidth / 2 - doodleWidth / 2;
-let doodleY = boardHeight * 7 / 8 - doodleHeight;
+let doodleY = boardHeight- (35 + doodleHeight);
 let doodleRightImg = new Image();
 let doodleLeftImg = new Image();
 doodleLeftImg.src = "./Assets/doodler-left.png";
@@ -40,6 +40,11 @@ let platformImg=new Image();
 platformImg.src="./Assets/platform.png";
 let platformCount=7;
 
+let score=0;
+let maxScore=0
+let gameOver=false;
+let deltaTime=0;
+
 window.onload = function () {
     board = document.getElementById("board");
     board.height = boardHeight;
@@ -57,6 +62,10 @@ window.onload = function () {
 };
 
 function update() {
+    if(gameOver){
+        return;
+    }
+
     // Calculate delta time
     let currentTime = performance.now();
     let deltaTime = (currentTime - lastFrameTime) / 16;
@@ -67,12 +76,15 @@ function update() {
     //doodler render
     velY += gravity*deltaTime;
     doodler.y+=velY*deltaTime;
+    if(doodler.y > boardHeight){
+        gameOver=true;
+    }
     doodlerRender(deltaTime);
 
     //platform render
     for(let i = 0; i<platformArray.length;i++){
         let platform=platformArray[i];
-        if(velY<0 && doodler.y < boardHeight*3/4){
+        if(velY<0 && doodler.y < boardHeight*3/5){
             platform.y -= initialVelY*deltaTime;
         }
         //jump
@@ -82,9 +94,20 @@ function update() {
         context.drawImage(platform.img, platform.x, platform.y, platform.width, platform.height);
     }
 
+    //new platform
     while(platformArray.length>0 && platformArray[0].y >= boardHeight){
         platformArray.shift();
         newPlatform();
+        score+=147;
+    }
+
+    //score
+    context.fillStyle="black";
+    context.font="16px sans-serif"
+    context.fillText("Score: "+score,5,20)
+
+    if(gameOver){
+        context.fillText("Game over: Press 'space' to restart", boardWidth/7, boardHeight*7/8)
     }
 
     showfps(currentTime);
@@ -99,6 +122,21 @@ function controls(e){
     else if(e.code=="ArrowLeft" || e.code=="KeyA"){
         velX=-4;
         doodler.img=doodleLeftImg;
+    }
+    else if(e.code=="Space" && gameOver){
+        doodler = {
+            img: doodleRightImg,
+            x: doodleX,
+            y: doodleY,
+            width: doodleWidth,
+            height: doodleHeight
+        };
+        velX=0;
+        velY=initialVelY;
+        score=0;
+        gameOver=false;
+        placePlatforms();
+        requestAnimationFrame(update);
     }
 }
 
@@ -119,7 +157,7 @@ function placePlatforms(){
     let platform={
         img: platformImg,
         x: boardWidth/2,
-        y:boardHeight-50,
+        y: boardHeight-30,
         width:platformWidth,
         height:platformHeight
     }
