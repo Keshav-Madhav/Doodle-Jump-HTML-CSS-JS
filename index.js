@@ -90,9 +90,11 @@ function update() {
     for (let i = 0; i < platformArray.length; i++) {
         let platform = platformArray[i];
         // Move platform down
-        platform.y += 0.5;
+        if (i >= 1) {
+            platform.y += 0.5;
+        }
         if (velY < 0 && doodler.y < boardHeight * 3 / 5) {
-            platform.y -= initialVelY * deltaTime;
+            platform.y -= initialVelY/2 * deltaTime;
         }
         //jump
         if (detectCollision(doodler, platform) && velY >= 0) {
@@ -101,12 +103,20 @@ function update() {
         context.drawImage(platform.img, platform.x, platform.y, platform.width, platform.height);
     }
 
-
     //new platform
-    while(platformArray.length>0 && platformArray[0].y >= boardHeight){
-        platformArray.shift();
-        newPlatform();
-        score+=147;
+    let i = 0;
+    while (i < platformArray.length) {
+        if (platformArray[i].y >= boardHeight) {
+            if (i >= 2) { 
+                platformArray.splice(i, 1);
+                newPlatform();
+                score += 147;
+            } else {
+                i++;
+            }
+        } else {
+            break;
+        }
     }
 
     //score
@@ -164,12 +174,29 @@ function placePlatforms(){
 
     let platform={
         img: platformImg,
-        x: boardWidth/2,
-        y: boardHeight-30,
+        x: boardWidth/2 -platformWidth/2,
+        y: boardHeight-60,
         width:platformWidth,
         height:platformHeight
     }
+    platformArray.push(platform);
 
+    platform={
+        img: platformImg,
+        x: boardWidth-platformWidth - 40,
+        y: boardHeight-130,
+        width:platformWidth,
+        height:platformHeight
+    }
+    platformArray.push(platform);
+
+    platform={
+        img: platformImg,
+        x: 30,
+        y: boardHeight-160,
+        width:platformWidth,
+        height:platformHeight
+    }
     platformArray.push(platform);
 
     for(let i=0; i<platformCount; i++){
@@ -178,7 +205,7 @@ function placePlatforms(){
         platform={
             img: platformImg,
             x: randomX,
-            y: boardHeight - (70+gap)*i - 150 ,
+            y: boardHeight - (70+gap)*i - 250,
             width:platformWidth,
             height:platformHeight
         }
@@ -216,7 +243,7 @@ function detectCollision(a,b){
 function showfps(currentTime){
     frameCount++;
     let frameRate = frameCount / ((currentTime - lastFrameTime) / 1000);
-    frameRateDisplay.textContent = `FPS: ${frameRate.toFixed(1)}`;
+    // frameRateDisplay.textContent = `FPS: ${frameRate.toFixed(1)}`;
     frameCount = 0;
     lastFrameTime = currentTime;
 }
