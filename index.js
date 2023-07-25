@@ -85,14 +85,11 @@ function update() {
     }
     doodlerRender(deltaTime);
 
-
     //platform render
     for (let i = 0; i < platformArray.length; i++) {
         let platform = platformArray[i];
-        // Move platform down
-        if (i >= 1) {
-            platform.y += 0.5;
-        }
+        platform.y += 0.5;
+
         if (velY < 0 && doodler.y < boardHeight * 3 / 5) {
             platform.y -= initialVelY/2 * deltaTime;
         }
@@ -107,15 +104,11 @@ function update() {
     let i = 0;
     while (i < platformArray.length) {
         if (platformArray[i].y >= boardHeight) {
-            if (i >= 2) { 
-                platformArray.splice(i, 1);
-                newPlatform();
-                score += 147;
-            } else {
-                i++;
-            }
+            platformArray.splice(i, 1);
+            newPlatform();
+            score += 147;
         } else {
-            break;
+            i++;
         }
     }
 
