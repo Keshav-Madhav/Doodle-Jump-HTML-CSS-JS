@@ -1,6 +1,10 @@
 let fps = 60;
 let interval = 1000 / fps;
 let lastTime = performance.now();
+let frameRateDisplay = document.createElement("div");
+document.body.appendChild(frameRateDisplay);
+let frameCount = 0;
+let lastFrameTime = performance.now();
 
 let board;
 let boardWidth = 380;
@@ -17,6 +21,9 @@ doodleLeftImg.src = "./Assets/doodler-left.png";
 doodleRightImg.src = "./Assets/doodler-right.png";
 
 let velX=0;
+let velY=0;
+let initialVelY=-8;
+let gravity=0.4;
 
 let doodler = {
     img: doodleRightImg,
@@ -25,14 +32,12 @@ let doodler = {
     width: doodleWidth,
     height: doodleHeight
 };
-// Frame rate display
-let frameRateDisplay = document.createElement("div");
-document.body.appendChild(frameRateDisplay);
 
-// Frame rate counter
-let frameCount = 0;
-let lastFrameTime = performance.now();
-
+let platformArray=[];
+let platformWidth=60;
+let platformHeight=18;
+let platformImg=new Image();
+platformImg.src="./Assets/platform.png";
 
 window.onload = function () {
     board = document.getElementById("board");
@@ -42,8 +47,12 @@ window.onload = function () {
 
     context.drawImage(doodler.img, doodler.x, doodler.y, doodler.width, doodler.height);
 
+    velY=initialVelY;
+
+    placePlatforms();
+
     requestAnimationFrame(update);
-    document.addEventListener("keydown", moveDoodler);
+    document.addEventListener("keydown", controls);
 };
 
 function update() {
@@ -54,16 +63,23 @@ function update() {
     // Draw game state
     context.clearRect(0, 0, boardWidth, boardHeight);
 
-    doodler.x +=velX*deltaTime;
-    context.drawImage(doodler.img, doodler.x, doodler.y, doodler.width, doodler.height);
+    velY += gravity*deltaTime;
+    doodler.y+=velY*deltaTime;
+    doodlerMove(deltaTime);
 
-
+    for(let i = 0; i<platformArray.length;i++){
+        let platform=platformArray[i];
+        if(detectCollision(doodler,platform)){
+            velY=initialVelY;
+        }
+        context.drawImage(platform.img, platform.x, platform.y, platform.width, platform.height);
+    }
 
     showfps(currentTime);
     requestAnimationFrame(update);
 }
 
-function moveDoodler(e){
+function controls(e){
     if(e.code=="ArrowRight" || e.code == "KeyD"){
         velX=4;
         doodler.img=doodleRightImg;
@@ -74,6 +90,47 @@ function moveDoodler(e){
     }
 }
 
+function doodlerMove(deltaTime){
+    doodler.x +=velX*deltaTime;
+    if(doodler.x > boardWidth){
+        doodler.x=0-doodler.width/2;
+    }
+    else if(doodler.x + doodler.width < 0){
+        doodler.x=boardWidth-doodleWidth/2;
+    }
+    context.drawImage(doodler.img, doodler.x, doodler.y, doodler.width, doodler.height);
+}
+
+function placePlatforms(){
+    platformArray=[];
+
+    let platform={
+        img: platformImg,
+        x: boardWidth/2,
+        y:boardHeight-50,
+        width:platformWidth,
+        height:platformHeight
+    }
+
+    platformArray.push(platform);
+
+    platform={
+        img: platformImg,
+        x: boardWidth/2,
+        y:boardHeight-150,
+        width:platformWidth,
+        height:platformHeight
+    }
+
+    platformArray.push(platform);
+}
+
+function detectCollision(a,b){
+    return  a.x < b.x + b.width &&
+            a.x + a.width > b.x &&
+            a.y < b.y + b.height &&
+            a.y + a.height > b.y;
+}
 
 // Update frame rate display
 function showfps(currentTime){
