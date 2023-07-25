@@ -1,0 +1,13 @@
+*{
+    margin: 0;
+}
+
+body{
+    text-align: center;
+}
+
+#board{
+    background: url("./Assets/doodlejumpbg.png");
+    background-size: contain;
+    margin-top: 20px;
+}
